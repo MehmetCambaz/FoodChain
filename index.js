@@ -2,7 +2,6 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
 const jsonwebtoken = require("jsonwebtoken");
 
 const cookieParser = require('cookie-parser');
@@ -22,40 +21,36 @@ app.use(express.urlencoded({
 
 const BlockChain = require('./BlockChain.js')
 const Block = require('./Block.js')
+const db = require('./database.js');
 
+var User = require('./models/User');
+var Inventory = require('./models/Inventory');
 
 app.set('view engine', 'pug');
 app.set('views', 'views');
 
-mongoose.connect('mongodb://localhost/login_system', {
-	useNewUrlParser: true
-});
-const User = mongoose.model('User', {
-	username: String,
-	password: String
-});
 
-const checkToken = (request, response, next)  => {
-	const token =request.cookies.token;
 
-    try{
+const checkToken = (request, response, next) => {
+	const token = request.cookies.token;
+
+	try {
 		const user = jsonwebtoken.verify(token, JWT_SECRET);
 		request.user = user;
-		
 
-		if(request.user.user === 'admin'){
+
+		if (request.user.user === 'admin') {
 			next();
-		}
-		else{
+		} else {
 			res.sendStatus(403)
 		}
-			
+
 
 		console.log(request.user);
 		console.log(request.user.user);
 		console.log(user);
 
-	}catch (err){
+	} catch (err) {
 		console.log(request.user);
 		response.redirect('/login');
 	}
@@ -68,14 +63,10 @@ blockChain = new BlockChain();
 
 app.get('/', checkToken, function (request, response, next) {
 
-	//response.sendFile(path.join(__dirname, 'views', 'Operations.html'));
-
-
-
 	response.render('opetations', {
 		"blockChain": blockChain.blockchain,
 		"data": blockChain.blockchain.data,
-		"username" : 'Cambaz',
+		"username": 'Cambaz',
 		"role": 'Admin'
 	});
 
@@ -118,11 +109,15 @@ app.post('/login', async (req, res) => {
 	});
 	if (user) {
 		//res.send('Successfully logged in');
-		
-		const token = jsonwebtoken.sign({ user: "admin" }, JWT_SECRET, { expiresIn: "1h"});
+
+		const token = jsonwebtoken.sign({
+			user: "admin"
+		}, JWT_SECRET, {
+			expiresIn: "1h"
+		});
 
 		res.cookie("token", token, {
-			httpOnly : false,
+			httpOnly: false,
 			secure: false,
 		});
 
@@ -133,6 +128,21 @@ app.post('/login', async (req, res) => {
 });
 
 
+app.post('/insert', checkToken, function (request, response, next) {
+	console.log(request.body.product_id);
+	let date = new Date();
 
+	db.collection('inventories').updateOne({ product_id: 1}, { $set : {approval_status : 1, approval_date : date }}, function (err, result) {
+		console.log(result);
+	});
+
+
+});
+
+app.get('/insert', checkToken, function (request, response, next) {
+
+	Inventory.find({}, { projection: { approval_status: 0 }}).then((result) => response.render('insert', {"Inventory" : result}));
+
+});
 
 app.listen(3000);
