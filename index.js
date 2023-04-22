@@ -45,11 +45,6 @@ const checkToken = (request, response, next) => {
 			res.sendStatus(403)
 		}
 
-
-		console.log(request.user);
-		console.log(request.user.user);
-		console.log(user);
-
 	} catch (err) {
 		console.log(request.user);
 		response.redirect('/login');
@@ -87,7 +82,7 @@ app.post('/', checkToken, function (request, response, next) {
 	blockChain.addNewBlock(block);
 
 	const jsonobj = JSON.stringify(blockChain, null, 5);
-	console.log(jsonobj);
+	//console.log(jsonobj);
 
 	response.redirect('back');
 });
@@ -111,7 +106,9 @@ app.post('/login', async (req, res) => {
 		//res.send('Successfully logged in');
 
 		const token = jsonwebtoken.sign({
-			user: "admin"
+			user: "admin",
+			username: user.username,
+			user_id: user._id
 		}, JWT_SECRET, {
 			expiresIn: "1h"
 		});
@@ -120,7 +117,6 @@ app.post('/login', async (req, res) => {
 			httpOnly: false,
 			secure: false,
 		});
-
 		res.redirect('/');
 	} else {
 		res.send('Invalid login');
@@ -143,6 +139,62 @@ app.get('/insert', checkToken, function (request, response, next) {
 
 	Inventory.find({}, { projection: { approval_status: 0 }}).then((result) => response.render('insert', {"Inventory" : result}));
 
+});
+
+app.get('/inventory', checkToken, function (request, response, next) {
+
+	const token = request.cookies.token;
+	var v_user_name = "empty";
+
+	try {
+		const user = jsonwebtoken.verify(token, JWT_SECRET);
+		request.user = user;
+
+
+		v_user_name =  request.user.username;
+
+	} catch (err) {
+		console.log("checkToken_error_inventory");
+	}
+	console.log(v_user_name);
+
+	Inventory.find({username: v_user_name}).then((result) => response.render('inventory', {"Inventory" : result}));
+
+
+
+});
+
+app.post('/inventory', checkToken, function (request, response) {
+
+	const token = request.cookies.token;
+	var user_name = "empty";
+
+	try {
+		const user = jsonwebtoken.verify(token, JWT_SECRET);
+		request.user = user;
+
+
+		user_name =  request.user.username;
+		user_id = request.user.user_id;
+
+	} catch (err) {
+		console.log("checkToken_error");
+	}
+
+	var insert_data = {
+		user_id: user_id,
+		username: user_name,
+		product_name: request.body.product_name,
+		product_brand:	request.body.product_brand,
+		production_date: request.body.production_date,
+		approval_status: 0,
+		product_weight: request.body.product_weight,
+		insert_date: Date.now() 					
+	}
+	
+	Inventory.insertMany(insert_data);
+
+	response.redirect('back');
 });
 
 app.listen(3000);

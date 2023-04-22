@@ -6,8 +6,11 @@ mongoose.connect('mongodb://localhost/login_system', {
 });
 */
 const User = mongoose.model('User', {
+	_id: String,
 	username: String,
-	password: String
-});
+	password: String,
+	role: String
+	});
+
 
 module.exports = User;
