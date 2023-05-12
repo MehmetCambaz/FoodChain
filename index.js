@@ -3,6 +3,7 @@ const path = require('path');
 const app = express();
 const bodyParser = require('body-parser');
 const jsonwebtoken = require("jsonwebtoken");
+const {ObjectId} = require('mongodb');
 
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
@@ -18,6 +19,13 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({
 	extended: false
 }))
+
+app.use(function(req,res,next){
+	if (req.user) {
+		req.session.role = request.user.role;
+	}
+	next();
+});
 
 const BlockChain = require('./BlockChain.js')
 const Block = require('./Block.js')
@@ -51,6 +59,27 @@ const checkToken = (request, response, next) => {
 	}
 }
 
+const isUserAdmin = (request, response, next) => {
+	const token = request.cookies.token;
+	var user_role;
+
+	try {
+		const user = jsonwebtoken.verify(token, JWT_SECRET);
+		request.user = user;
+
+		user_role = request.user.role;
+
+		if(user_role == "Admin")
+			next();
+		else
+			response.sendStatus(401);
+
+	} catch (err) {
+		console.log("isUserAdmin_error");
+		response.status(500).send('isUserAdmin_error!')
+	}
+}
+
 
 
 blockChain = new BlockChain();
@@ -58,11 +87,26 @@ blockChain = new BlockChain();
 
 app.get('/', checkToken, function (request, response, next) {
 
+	const token = request.cookies.token;
+	var v_user_name, v_user_role;
+
+	try {
+		const user = jsonwebtoken.verify(token, JWT_SECRET);
+		request.user = user;
+
+
+		v_user_name =  request.user.username;
+		v_user_role = request.user.role;
+
+	} catch (err) {
+		console.log("checkToken_error_inventory");
+	}
+
 	response.render('opetations', {
 		"blockChain": blockChain.blockchain,
 		"data": blockChain.blockchain.data,
-		"username": 'Cambaz',
-		"role": 'Admin'
+		"username": v_user_name,
+		"role": v_user_role
 	});
 
 
@@ -108,7 +152,8 @@ app.post('/login', async (req, res) => {
 		const token = jsonwebtoken.sign({
 			user: "admin",
 			username: user.username,
-			user_id: user._id
+			user_id: user._id,
+			role: user.role
 		}, JWT_SECRET, {
 			expiresIn: "1h"
 		});
@@ -124,27 +169,19 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.post('/insert', checkToken, function (request, response, next) {
+app.post('/insert', checkToken, isUserAdmin, function (request, response, next) {
 	console.log(request.body.product_id);
 	let date = new Date();
 
-	db.collection('inventories').updateOne({ product_id: 1}, { $set : {approval_status : 1, approval_date : date }}, function (err, result) {
-		console.log(result);
-	});
+	db.collection('inventories').updateOne({ '_id': ObjectId(request.body.product_id)},{$set: { approval_status: 1, approval_date: date }} , function (err, result) {});
 
-
-});
-
-app.get('/insert', checkToken, function (request, response, next) {
-
-	Inventory.find({}, { projection: { approval_status: 0 }}).then((result) => response.render('insert', {"Inventory" : result}));
+	response.redirect('/insert');
 
 });
 
-app.get('/inventory', checkToken, function (request, response, next) {
-
+app.get('/insert', checkToken, isUserAdmin, function (request, response, next) {
 	const token = request.cookies.token;
-	var v_user_name = "empty";
+	var v_user_name, v_user_role;
 
 	try {
 		const user = jsonwebtoken.verify(token, JWT_SECRET);
@@ -152,16 +189,34 @@ app.get('/inventory', checkToken, function (request, response, next) {
 
 
 		v_user_name =  request.user.username;
+		v_user_role = request.user.role;
 
 	} catch (err) {
 		console.log("checkToken_error_inventory");
 	}
-	console.log(v_user_name);
 
-	Inventory.find({username: v_user_name}).then((result) => response.render('inventory', {"Inventory" : result}));
+	Inventory.find({ approval_status: 0}).then((result) => response.render('insert', {"Inventory" : result, "username": v_user_name,
+	"role": v_user_role}));
+});
+
+app.get('/inventory', checkToken, function (request, response, next) {
+
+	const token = request.cookies.token;
+	var v_user_name, v_user_role;
+
+	try {
+		const user = jsonwebtoken.verify(token, JWT_SECRET);
+		request.user = user;
 
 
+		v_user_name =  request.user.username;
+		v_user_role = request.user.role;
+	} catch (err) {
+		console.log("checkToken_error_inventory");
+	}
 
+	Inventory.find({username: v_user_name}).then((result) => response.render('inventory', {"Inventory" : result, "username": v_user_name,
+	"role": v_user_role}));
 });
 
 app.post('/inventory', checkToken, function (request, response) {
@@ -196,5 +251,6 @@ app.post('/inventory', checkToken, function (request, response) {
 
 	response.redirect('back');
 });
+
 
 app.listen(3000);

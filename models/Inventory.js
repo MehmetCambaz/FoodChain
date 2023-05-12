@@ -5,6 +5,7 @@ mongoose.connect('mongodb://localhost/login_system', {
 	useNewUrlParser: true
 });
 const Inventory = mongoose.model('Inventory', {
+    _id: String,
     user_id: String,
 	username: String,
     insert_date: Date,

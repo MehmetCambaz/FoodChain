@@ -11,34 +11,34 @@ main
   .container
     include ../views/navbar.pug
   .container
-    h1.text-center.mt-3.mb-3 Inventory
+    h1.text-center.mt-3.mb-3 Pending Records
     .card
       .card-body
         table.table
           thead
             tr
-              th(scope='col') Insert Date
+              th(scope='col') Producer Name
               th(scope='col') Product Name
               th(scope='col') Product Brand
+              th(scope='col') Product Weight
               th(scope='col') Production Date
-              th(scope='col') Approval Status
               th(scope='col') Action
           tbody
           each inventory in Inventory
             tr
-              th(scope='row')= inventory.insert_date
+              td= inventory.username
               td= inventory.product_name
               td= inventory.product_brand
+              td= inventory.product_weight
               td= inventory.production_date
-              td= inventory.approval_status
               td
-                button.btn.btn-outline-success(type='button') Confirn  
-                button.btn.btn-outline-danger(type='button' id=inventory.product_id onclick='clickme(this.id)') Decline
+                button.btn.btn-outline-success(type='button'  id=inventory._id onclick='clickme(this.id, 1)') Confirn  
+                button.btn.btn-outline-danger(type='button' id=inventory._id onclick='clickme(this.id, -1)') Decline
                 script.
-                  function clickme(clicked_id) {
+                  function clickme(clicked_id, result) {
                   $.ajax({
                   url: "/insert",
-                  data:  {product_id : clicked_id},
+                  data:  {product_id: clicked_id, result: result},
                   type: "POST",
                   //datatype expected to get in reply form server
                   dataType: "json",
