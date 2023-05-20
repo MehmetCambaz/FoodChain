@@ -13,6 +13,7 @@ const Inventory = mongoose.model('Inventory', {
     product_brand: String,
     product_weight: Number,
     production_date: Date,
+    product_lab_result: String,
     approval_date: Date,
     approval_status: Number
 });

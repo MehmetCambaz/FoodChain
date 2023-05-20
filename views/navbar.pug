@@ -1,13 +1,15 @@
 nav.navbar.navbar-expand-lg.navbar-light.bg-light
-  a.navbar-brand(href='#') FoodChain
+  a.navbar-brand(href='/') FoodChain
   button.navbar-toggler(type='button' data-toggle='collapse' data-target='#navbarNav' aria-controls='navbarNav' aria-expanded='false' aria-label='Toggle navigation')
     span.navbar-toggler-icon
   #navbarNav.collapse.navbar-collapse
     ul.navbar-nav
       li.nav-item
-        a.nav-link(href='/') Operation
+        a.nav-link(href='/') Home
       li.nav-item
-        a.nav-link(href='/inventory') Inventory
+        a.nav-link(href='#') Inventory
+      li.nav-item
+        a.nav-link(href='/inventory') Product
       if(role === "Admin")
         li.nav-item
-        a.nav-link(href='/insert') Insert
+        a.nav-link(href='/insert') Admin

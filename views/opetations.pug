@@ -7,26 +7,10 @@ head
   meta(http-equiv='X-UA-Compatible' content='IE=edge')
   meta(name='viewport' content='width=device-width, initial-scale=1.0')
   title BlockChain Operations
-main
+  main
   .container
     include ../views/navbar.pug
-    h1.text-center.mt-3.mb-3 Add New Block
-    .card
-      .card-body
-        form(method='POST' action='/')
-          .mb-3
-            label Product Name
-            input#product_name.form-control(type='text' name='product_name')
-          .mb-3
-            label Product Brand
-            input#product_brand.form-control(type='text' name='product_brand')
-          .mb-3
-            label Production Date
-            input#production_date.form-control(type='text' name='production_date')
-          .mb-3
-            input.btn.btn-primary(type='submit' name='submit_button' value='Add')
-  .container
-    h1.text-center.mt-3.mb-3 Add New Block
+    h1.text-center.mt-3.mb-3 FoodChain Data
     .card
       .card-body
         table.table

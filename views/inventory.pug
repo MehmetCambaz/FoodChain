@@ -21,7 +21,7 @@ main
     h1.text-center.mt-3.mb-3 Add New Product
     .card
       .card-body
-        form(method='POST' action='/inventory')
+        form(method='POST' action='/inventory' enctype="multipart/form-data")
           .mb-3
             label Product Name
             input#product_name.form-control(type='text' name='product_name')
@@ -35,9 +35,12 @@ main
             label Product Weight
             input#production_date.form-control(type='text' name='product_weight')
           .mb-3
+            label.form-label(for='customFile') Upload Lab Results
+            input#customFile.form-control(type='file' name='lab_result_file')
+          .mb-3
             input.btn.btn-primary(type='submit' name='submit_button' value='Add')
   .container
-    h1.text-center.mt-3.mb-3 Inventory Details
+    h1.text-center.mt-3.mb-3 Product History
     .card
       .card-body
         table.table
